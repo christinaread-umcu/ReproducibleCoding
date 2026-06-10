@@ -30,36 +30,40 @@ library(randomForest)
 ```
 
 ```{r}
-url <- 'https://archive.ics.uci.edu/static/public/544/estimation+of+obesity+levels+based+on+eating+habits+and+physical+condition.zip'
+data_url <- 'https://archive.ics.uci.edu/static/public/544/estimation+of+obesity+levels+based+on+eating+habits+and+physical+condition.zip'
 
-r <- GET(url)
+#removed this line as it is not needed
 
-tmp <- GET(url, write_disk('data.zip', overwrite = TRUE))
-stop_for_status(tmp)
+tmp <- httr::GET(data_url, write_disk('data.zip', overwrite = TRUE))
+httr::stop_for_status(tmp)
 
 unzip('data.zip', exdir = './data')
 
-df <- read_csv('data/ObesityDataSet_raw_and_data_sinthetic.csv', show_col_types = FALSE)
+obesity_data <- readr::read_csv('data/ObesityDataSet_raw_and_data_sinthetic.csv', show_col_types = FALSE)
 ```
 
 ```{r}
-df_web <- df[1:498, ]
-df_synthetic <- df[499:nrow(df), ]
-df_web
+survey_data <- obesity_data[1:498, ]
+synthetic_data <- df[499:nrow(df), ]
+survey_data
 ```
 
 ```{r}
-X_columns <- c('Gender', 'Age', 'BMI')
+##remove redundancy
+##X_columns <- c('Gender', 'Age', 'BMI')
 
-df_web$BMI <- df_web$Weight / (df_web$Height)^2
-df_synthetic$BMI <- df_synthetic$Weight / (df_synthetic$Height)^2
+##Create BMI variable based on standard formula
+survey_data$BMI <- survey_data$Weight / (survey_data$Height)^2
+synthetic_data$BMI <- synthetic_data$Weight / (synthetic_data$Height)^2
 
-plot(df_web$BMI, type = 'l')
+#scatterplot of BMI values
+ggplot2::plot(survey_data$BMI, type = 'p')
 
+#label data based on standard BMI thresholds
 outcomes <- c()
-for (bmi in df_web$BMI) {
+for (bmi in survey_data$BMI) {
   if (bmi < 18.5) {
-    outcomes <- c(outcomes, '0_undwerweight')
+    outcomes <- c(outcomes, '0_underweight')
   } else if (bmi < 25) {
     outcomes <- c(outcomes, '1_normal')
   } else if (bmi < 30) {
@@ -69,44 +73,50 @@ for (bmi in df_web$BMI) {
   }
 }
 
-df_web$label <- outcomes
+survey_data$label <- outcomes
 ```
 
 ```{r}
-df_web[10:20, ]
+survey_data[10:20, ]
 ```
 
 ```{r}
-print(colnames(df))
+##print(colnames(obesity_data))
+##remove redundant line
 
-df_web$MTRANS[df_web$MTRANS == 'Walking'] <- 1
-df_web$MTRANS[df_web$MTRANS == 'Bike'] <- 1
-df_web$MTRANS[df_web$MTRANS == 'Public_Transportation'] <- 0
-df_web$MTRANS[df_web$MTRANS == 'Automobile'] <- 0
-df_web$MTRANS[df_web$MTRANS == 'Motorbike'] <- 0
-df_web$MTRANS <- as.numeric(df_web$MTRANS)
+##differentiate active and passive transport with 0/1 for modelling
+survey_data$MTRANS[survey_data$MTRANS == 'Walking'] <- 1
+survey_data$MTRANS[survey_data$MTRANS == 'Bike'] <- 1
+survey_data$MTRANS[survey_data$MTRANS == 'Public_Transportation'] <- 0
+survey_data$MTRANS[survey_data$MTRANS == 'Automobile'] <- 0
+survey_data$MTRANS[survey_data$MTRANS == 'Motorbike'] <- 0
+survey_data$MTRANS <- as.numeric(survey_data$MTRANS)
 
-df_web$Gender[df_web$Gender == 'Male'] <- 1
-df_web$Gender[df_web$Gender == 'Female'] <- 0
-df_web$Gender <- as.numeric(df_web$Gender)
+##convert gender to numeric values for modelling
+survey_data$Gender[survey_data$Gender == 'Male'] <- 1
+survey_data$Gender[survey_data$Gender == 'Female'] <- 0
+survey_data$Gender <- as.numeric(survey_data$Gender)
 
-Xcol_binary <- c(
+##convert binary columns to numeric values for modelling
+binary_columns <- c(
   'family_history_with_overweight',
   'FAVC',
   'SMOKE',
   'SCC'
 )
 
-for (col in Xcol_binary) {
-  df_web[df_web[[col]] == 'yes', col] <- '1'
-  df_web[df_web[[col]] == 'no', col] <- '0'
-  df_web[[col]] <- as.numeric(df_web[[col]])
+for (col in binary_columns) {
+  survey_data[survey_data[[col]] == 'yes', col] <- '1'
+  survey_data[survey_data[[col]] == 'no', col] <- '0'
+  survey_data[[col]] <- as.numeric(survey_data[[col]])
 }
 
-Xcol_ordinal <- c('CAEC', 'CALC')
+##Convert ordinal columns to numeric values for modelling
+ordinal_columns <- c('CAEC', 'CALC')
 
-df_web$CAEC <- as.numeric(factor(df_web$CAEC, levels = c('no', 'Sometimes', 'Frequently', 'Always'))) - 1
-df_web$CALC <- as.numeric(factor(df_web$CALC, levels = c('no', 'Sometimes', 'Frequently', 'Always'))) - 1
+for (col in ordinal_columns) {
+  survey_data[[col]] <- as.numeric(factor(survey_data[[col]], levels = c('no', 'Sometimes', 'Frequently', 'Always'))) - 1
+}
 ```
 
 ```{r}
@@ -118,37 +128,41 @@ X_columns <- c('Age', 'Gender', 'family_history_with_overweight',
 ## Regression problem
 
 ```{r}
-classes <- sort(unique(df_web$label))
-freq <- table(df_web$label)
-class_weight <- length(df_web$label) / (length(classes) * as.numeric(freq))
+weight_classes <- sort(unique(survey_data$label))
+freq <- table(survey_data$label)
+
+#calculate class weights to handle class imbalance
+class_weight <- length(survey_data$label) / (length(weight_classes) * as.numeric(freq))
 names(class_weight) <- names(freq)
 
-print(classes)
+print(weight_classes)
 print(class_weight)
 ```
 
 ```{r}
 # Note: result can deviate from the python code due to random seed!
 set.seed(42)
-idx <- seq_len(nrow(df_web))
+idx <- seq_len(nrow(survey_data))
 
+#choose rows to train and test with
 idx_train <- sample(idx, size = floor(0.7 * length(idx)))
 idx_test <- setdiff(idx, idx_train)
 
-X_train <- df_web[idx_train, X_columns]
-X_test <- df_web[idx_test, X_columns]
-y_train <- df_web$BMI[idx_train]
-y_test <- df_web$BMI[idx_test]
+X_train <- survey_data[idx_train, X_columns]
+X_test <- survey_data[idx_test, X_columns]
+y_train <- survey_data$BMI[idx_train]
+y_test <- survey_data$BMI[idx_test]
 
-sample_weights <- class_weight[df_web$label[idx_train]]
+sample_weights <- class_weight[survey_data$label[idx_train]]
 ```
 
 ```{r}
-reg <- lm(BMI ~ ., data = cbind(X_train, BMI = y_train))
-reg <- randomForest(x = X_train, y = y_train, ntree = 100, nodesize = 5, maxnodes = 20)
+#run linear regression because we expect a linear relationships between features and BMI
+reg <- lm(BMI ~ ., data = data.frame(X_train, BMI = y_train))
 ```
 
 ```{r}
+#evaluate model accuracy in testing set
 preds <- predict(reg, X_test)
 
 plot(preds, y_test, pch = 16, col = rgb(0, 0, 0, 0.5))
@@ -156,14 +170,18 @@ abline(a = 0, b = 1, col = 'red', lty = 3)
 ```
 
 ```{r}
+#evaluate model accuracy in training set
 plot(predict(reg, X_train), y_train, pch = 16, col = rgb(0, 0, 0, 0.5))
 abline(a = 0, b = 1, col = 'red', lty = 3)
 ```
 
 ```{r}
-sample_weights_test <- class_weight[df_web$label[idx_test]]
+sample_weights_test <- class_weight[survey_data$label[idx_test]]
 
+#compute baseline mean absolute error
 mae_baseline <- sum(abs(y_test - rep(mean(y_train), length(y_test))) * sample_weights_test) / sum(sample_weights_test)
+
+#compute mean absolute error of model
 mae_model <- mean(abs(y_test - preds) * sample_weights_test)
 
 cat(sprintf('Mean absolute error (baseline): %.3f\n', mae_baseline))
