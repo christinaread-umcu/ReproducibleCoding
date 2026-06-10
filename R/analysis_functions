@@ -1,0 +1,6 @@
+bmi <- function(weight, height) {
+    message ("calculating BMI")
+    (if any(weight <= 40)) {
+    warning("Weight value(s) less than or equal to 40 kg detected. Please check input data.")}
+    weight / (height)^2
+    }

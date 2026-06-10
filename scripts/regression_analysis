@@ -1,0 +1,55 @@
+
+#This file contains the main analysis code
+
+weight_classes <- sort(unique(survey_data$label))
+freq <- table(survey_data$label)
+
+#calculate class weights to handle class imbalance
+class_weight <- length(survey_data$label) / (length(weight_classes) * as.numeric(freq))
+names(class_weight) <- names(freq)
+
+print(weight_classes)
+print(class_weight)
+
+# Note: result can deviate from the python code due to random seed!
+set.seed(42)
+idx <- seq_len(nrow(survey_data))
+
+#choose rows to train and test with
+idx_train <- sample(idx, size = floor(0.7 * length(idx)))
+idx_test <- setdiff(idx, idx_train)
+
+X_train <- survey_data[idx_train, X_columns]
+X_test <- survey_data[idx_test, X_columns]
+y_train <- survey_data$BMI[idx_train]
+y_test <- survey_data$BMI[idx_test]
+
+sample_weights <- class_weight[survey_data$label[idx_train]]
+
+#run linear regression because we expect a linear relationships between features and BMI
+reg <- lm(BMI ~ ., data = data.frame(X_train, BMI = y_train))
+
+
+
+#evaluate model accuracy in testing set
+preds <- predict(reg, X_test)
+
+plot(preds, y_test, pch = 16, col = rgb(0, 0, 0, 0.5))
+abline(a = 0, b = 1, col = 'red', lty = 3)
+
+#evaluate model accuracy in training set
+plot(predict(reg, X_train), y_train, pch = 16, col = rgb(0, 0, 0, 0.5))
+abline(a = 0, b = 1, col = 'red', lty = 3)
+
+
+
+sample_weights_test <- class_weight[survey_data$label[idx_test]]
+
+#compute baseline mean absolute error
+mae_baseline <- sum(abs(y_test - rep(mean(y_train), length(y_test))) * sample_weights_test) / sum(sample_weights_test)
+
+#compute mean absolute error of model
+mae_model <- mean(abs(y_test - preds) * sample_weights_test)
+
+cat(sprintf('Mean absolute error (baseline): %.3f\n', mae_baseline))
+cat(sprintf('Mean absolute error: %.3f\n', mae_model))
