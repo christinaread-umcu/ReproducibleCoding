@@ -1,20 +1,15 @@
 # This file contains the main analysis code
 
-# scatterplot of BMI values
+#generate scatterplot of BMI values to visually assess distribution
 plot(survey_data$BMI, type = "p")
 
 # calculate class weights to handle class imbalance
-n_classes <- length(unique(survey_data$label))
-freq <- table(survey_data$label)
-class_weight <- length(survey_data$label) / ((n_classes) * as.numeric(freq))
-names(class_weight) <- names(freq)
-print(class_weight)
+class_weight <- generate_class_weights(survey_data$label)
 
-# Note: result can deviate from the python code due to random seed!
+#split data into training and test sets
 set.seed(42)
 index_rows <- seq_len(nrow(survey_data))
 
-# choose rows to train and test with
 idx_train <- sample(index_rows, size = floor(0.7 * length(idx)))
 idx_test <- setdiff(index_rows, idx_train)
 
@@ -29,13 +24,12 @@ predictors_test <- survey_data[idx_test, predictors]
 BMI_train <- survey_data$BMI[idx_train]
 BMI_test <- survey_data$BMI[idx_test]
 
-sample_weights <- class_weight[survey_data$label[idx_train]]
+#assign weights to the training data to correct class imbalance
+sample_weights_train <- class_weight[survey_data$label[idx_train]]
 
-# run linear regression because we expect a linear relationships between features and BMI
-reg <- lm(BMI ~ .,
-  data = data.frame(predictors_train, BMI = BMI_train),
-  weights = sample_weights
-)
+# run random forest with weights to handle class imbalance
+reg <- randomForest(x = predictors_train, y = BMI_train, ntree = 100, nodesize = 5, maxnodes = 20, case.weights=sample_weights_train)
+
 
 # plot model accuracy in training set
 plot(predict(reg, predictors_train), BMI_train, pch = 16, col = rgb(0, 0, 0, 0.5))

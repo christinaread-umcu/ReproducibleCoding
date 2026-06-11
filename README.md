@@ -11,7 +11,7 @@ Changes made to the assignment code:
 4) Added informative comments and informative variable names.
 5) Updated loops in code to vectorised operations where possible.
 6) Created functions for script sections which may be re-used. Included logging in functions.
-7) Added tests in "tests" folder for testing functions.
+7) Added tests in "tests" folder for testing three out of four functions.
 8) Updated script using styler.
 
 ## Getting Started
@@ -22,9 +22,27 @@ Changes made to the assignment code:
 
 ### Executing program
 
-* First source analysis functions.
+* First run the script initialise_renv_lock to set up the environment.
+* Then source analysis_functions.
 * Then run data_processing script to download and process data.
 * Then run regression_analysis script to generate model and plots.
 
 ## Help
 Please open an issue in this repo if you encounter issues in running the script.
+
+### Use of Generative AI
+Github Copilot was used within VS Code as part of this assignment. In-line suggestions were considered and implemented when applicable. Additionally, I used the chat function to ask for advice, for example:
+
+Could this code be made more efficient with vectorisation?
+##convert binary columns to numeric values for modelling
+binary_columns <- c(
+  'family_history_with_overweight',
+  'FAVC',
+  'SMOKE',
+  'SCC'
+)
+for (col in binary_columns) {
+  survey_data[survey_data[[col]] == 'yes', col] <- '1'
+  survey_data[survey_data[[col]] == 'no', col] <- '0'
+  survey_data[[col]] <- as.numeric(survey_data[[col]])
+}
