@@ -20,23 +20,12 @@ survey_data <- full_data[1:498, ]
 survey_data$BMI <- calculate_bmi(survey_data$Weight, survey_data$Height)
 
 # label data based on standard BMI thresholds
-outcomes <- c()
-for (bmi in survey_data$BMI) {
-  if (bmi < 18.5) {
-    outcomes <- c(outcomes, "0_underweight")
-  } else if (bmi < 25) {
-    outcomes <- c(outcomes, "1_normal")
-  } else if (bmi < 30) {
-    outcomes <- c(outcomes, "2_overweight")
-  } else {
-    outcomes <- c(outcomes, "3_obese")
-  }
-}
-
-survey_data$label <- outcomes
-
-survey_data[10:20, ]
-
+survey_data$label <- as.character(cut(
+survey_data$BMI,
+breaks = c(-Inf, 18.5, 25, 30, Inf),
+labels = c("0_underweight", "1_normal", "2_overweight", "3_obese"),
+right = FALSE
+))
 
 ## differentiate active and passive transport with 0/1 for modelling
 survey_data$MTRANS[survey_data$MTRANS == "Walking"] <- 1
@@ -47,6 +36,8 @@ survey_data$MTRANS[survey_data$MTRANS == "Motorbike"] <- 0
 survey_data$MTRANS <- as.numeric(survey_data$MTRANS)
 
 ## convert gender to numeric values for modelling
+# coerce unexpected or other gender entries to "Female" for modelling
+survey_data$Gender[!(survey_data$Gender %in% c("Male", "Female"))] <- "Female"
 survey_data$Gender[survey_data$Gender == "Male"] <- 1
 survey_data$Gender[survey_data$Gender == "Female"] <- 0
 survey_data$Gender <- as.numeric(survey_data$Gender)

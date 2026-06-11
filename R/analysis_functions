@@ -9,7 +9,9 @@ calculate_bmi <- function(weight, height) {
   if (any(weight >= 150)) {
     warning("Weight value(s) greater than 200 kg detected. Please check input.")
   }
-  weight / height^2
+  bmi <- weight / (height^2)
+  message(sprintf("BMI calculated for %d observations", length(bmi)))
+  bmi
 }
 
 #function to convert yes/no binary columns to numeric values for modelling
