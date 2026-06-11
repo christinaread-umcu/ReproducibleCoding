@@ -1,101 +1,63 @@
-#this file contains data download and processing scripts
+# this file contains data download and processing scripts
 
-install.packages('httr', repos='http://cran.us.r-project.org')
-install.packages('readr', repos='http://cran.us.r-project.org')
-install.packages('ggplot2', repos='http://cran.us.r-project.org')
-install.packages('randomForest', repos='http://cran.us.r-project.org')
+install.packages("httr", repos = "http://cran.us.r-project.org")
+install.packages("readr", repos = "http://cran.us.r-project.org")
+install.packages("ggplot2", repos = "http://cran.us.r-project.org")
 
-library(httr)
-library(readr)
-library(ggplot2)
-library(randomForest)
+data_url <- "https://archive.ics.uci.edu/static/public/544/estimation+of+obesity+levels+based+on+eating+habits+and+physical+condition.zip"
 
-data_url <- 'https://archive.ics.uci.edu/static/public/544/estimation+of+obesity+levels+based+on+eating+habits+and+physical+condition.zip'
-
-tmp <- httr::GET(data_url, write_disk('data/data.zip', overwrite = TRUE))
+tmp <- httr::GET(data_url, write_disk("data/data.zip", overwrite = TRUE))
 httr::stop_for_status(tmp)
 
-unzip('data.zip', exdir = './data')
+unzip("data/data.zip", exdir = "data")
 
-obesity_data <- readr::read_csv('data/ObesityDataSet_raw_and_data_sinthetic.csv', show_col_types = FALSE)
+full_data <- readr::read_csv("data/ObesityDataSet_raw_and_data_sinthetic.csv", show_col_types = FALSE)
 
+# select only data from the original survey for analysis
+survey_data <- full_data[1:498, ]
 
+## Create BMI variable based on standard formula
+survey_data$BMI <- calculate_bmi(survey_data$Weight, survey_data$Height)
 
-survey_data <- obesity_data[1:498, ]
-synthetic_data <- df[499:nrow(df), ]
-survey_data
+# scatterplot of BMI values
+plot(survey_data$BMI, type = "p")
 
-
-
-##remove redundancy
-##X_columns <- c('Gender', 'Age', 'BMI')
-
-##Create BMI variable based on standard formula
-survey_data$BMI <- survey_data$Weight / (survey_data$Height)^2
-synthetic_data$BMI <- synthetic_data$Weight / (synthetic_data$Height)^2
-
-#scatterplot of BMI values
-ggplot2::plot(survey_data$BMI, type = 'p')
-
-#label data based on standard BMI thresholds
+# label data based on standard BMI thresholds
 outcomes <- c()
 for (bmi in survey_data$BMI) {
   if (bmi < 18.5) {
-    outcomes <- c(outcomes, '0_underweight')
+    outcomes <- c(outcomes, "0_underweight")
   } else if (bmi < 25) {
-    outcomes <- c(outcomes, '1_normal')
+    outcomes <- c(outcomes, "1_normal")
   } else if (bmi < 30) {
-    outcomes <- c(outcomes, '2_overweight')
+    outcomes <- c(outcomes, "2_overweight")
   } else {
-    outcomes <- c(outcomes, '3_obese')
+    outcomes <- c(outcomes, "3_obese")
   }
 }
 
 survey_data$label <- outcomes
 
-
-
 survey_data[10:20, ]
 
 
-
-##print(colnames(obesity_data))
-##remove redundant line
-
-##differentiate active and passive transport with 0/1 for modelling
-survey_data$MTRANS[survey_data$MTRANS == 'Walking'] <- 1
-survey_data$MTRANS[survey_data$MTRANS == 'Bike'] <- 1
-survey_data$MTRANS[survey_data$MTRANS == 'Public_Transportation'] <- 0
-survey_data$MTRANS[survey_data$MTRANS == 'Automobile'] <- 0
-survey_data$MTRANS[survey_data$MTRANS == 'Motorbike'] <- 0
+## differentiate active and passive transport with 0/1 for modelling
+survey_data$MTRANS[survey_data$MTRANS == "Walking"] <- 1
+survey_data$MTRANS[survey_data$MTRANS == "Bike"] <- 1
+survey_data$MTRANS[survey_data$MTRANS == "Public_Transportation"] <- 0
+survey_data$MTRANS[survey_data$MTRANS == "Automobile"] <- 0
+survey_data$MTRANS[survey_data$MTRANS == "Motorbike"] <- 0
 survey_data$MTRANS <- as.numeric(survey_data$MTRANS)
 
-##convert gender to numeric values for modelling
-survey_data$Gender[survey_data$Gender == 'Male'] <- 1
-survey_data$Gender[survey_data$Gender == 'Female'] <- 0
+## convert gender to numeric values for modelling
+survey_data$Gender[survey_data$Gender == "Male"] <- 1
+survey_data$Gender[survey_data$Gender == "Female"] <- 0
 survey_data$Gender <- as.numeric(survey_data$Gender)
 
-##convert binary columns to numeric values for modelling
-binary_columns <- c(
-  'family_history_with_overweight',
-  'FAVC',
-  'SMOKE',
-  'SCC'
-)
+## convert binary columns to numeric values for modelling
+binary_columns <- c("family_history_with_overweight", "FAVC", "SMOKE", "SCC")
+survey_data <- convert_binary_columns(survey_data, binary_columns)
 
-for (col in binary_columns) {
-  survey_data[survey_data[[col]] == 'yes', col] <- '1'
-  survey_data[survey_data[[col]] == 'no', col] <- '0'
-  survey_data[[col]] <- as.numeric(survey_data[[col]])
-}
-
-##Convert ordinal columns to numeric values for modelling
-ordinal_columns <- c('CAEC', 'CALC')
-
-for (col in ordinal_columns) {
-  survey_data[[col]] <- as.numeric(factor(survey_data[[col]], levels = c('no', 'Sometimes', 'Frequently', 'Always'))) - 1
-}
-
-X_columns <- c('Age', 'Gender', 'family_history_with_overweight',
-               'FAVC', 'FCVC', 'NCP', 'CAEC', 'SMOKE', 'CH2O', 'SCC', 'FAF', 'TUE',
-               'CALC', 'MTRANS')
+## Convert ordinal columns to numeric values for modelling
+ordinal_columns <- c("CAEC", "CALC")
+survey_data <- convert_ordinal_columns(survey_data, ordinal_columns)
