@@ -1,8 +1,8 @@
-install.packages("testthat")
+library(testthat)
 
 testthat::test_that("bmi calculation", {
   testthat::expect_equal(calculate_bmi(70, 1.75), 22.85714, tolerance = 1e-5)
-  testthat::expect_equal(calculate_bmi(50, 1.60), 19.53125,  tolerance = 1e-5)
+  testthat::expect_equal(calculate_bmi(50, 1.60), 19.53125, tolerance = 1e-5)
   testthat::expect_equal(calculate_bmi(90, 1.80), 27.77778, tolerance = 1e-5)
 })
 

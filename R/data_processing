@@ -19,9 +19,6 @@ survey_data <- full_data[1:498, ]
 ## Create BMI variable based on standard formula
 survey_data$BMI <- calculate_bmi(survey_data$Weight, survey_data$Height)
 
-# scatterplot of BMI values
-plot(survey_data$BMI, type = "p")
-
 # label data based on standard BMI thresholds
 outcomes <- c()
 for (bmi in survey_data$BMI) {

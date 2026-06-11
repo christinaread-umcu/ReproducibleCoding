@@ -1,4 +1,6 @@
 # functions for data processing
+
+#function to calculate BMI based on standard formula
 calculate_bmi <- function(weight, height) {
   message("calculating BMI")
   if (any(weight <= 30)) {
@@ -10,7 +12,7 @@ calculate_bmi <- function(weight, height) {
   weight / height^2
 }
 
-
+#function to convert yes/no binary columns to numeric values for modelling
 convert_binary_columns <- function(df, cols) {
   message("converting binary columns to numeric..")
   df[cols] <- lapply(
@@ -21,6 +23,7 @@ convert_binary_columns <- function(df, cols) {
   df
 }
 
+#function to convert ordinal columns to numeric values for modelling
 convert_ordinal_columns <- function(df,
                                     cols,
                                     levels = c("no", "Sometimes", "Frequently", "Always")) {
@@ -33,4 +36,15 @@ convert_ordinal_columns <- function(df,
   df
 }
 
-# functions for analysis
+#functions for analysis
+
+#function to assign class weights to handle class imbalance
+generate_class_weights <- function(labels) {
+  message("calculating class weights to handle class imbalance..")
+  n_classes <- length(unique(labels))
+  freq <- table(labels)
+  class_weight <- length(labels) / ((n_classes) * as.numeric(freq))
+  names(class_weight) <- names(freq)
+  message("class weights calculated :)")
+  class_weight
+}
