@@ -14,7 +14,7 @@ full_data <- readr::read_csv("data/ObesityDataSet_raw_and_data_sinthetic.csv", s
 # select only data from the original survey for analysis
 survey_data <- full_data[1:498, ]
 
-## Create BMI variable based on standard formula
+## create BMI variable based on standard formula
 survey_data$BMI <- calculate_bmi(survey_data$Weight, survey_data$Height)
 
 # label data based on standard BMI thresholds
@@ -24,7 +24,6 @@ survey_data$label <- as.character(cut(
   labels = c("0_underweight", "1_normal", "2_overweight", "3_obese"),
   right = FALSE
 ))
-
 
 ## differentiate active and passive transport with 0/1 for modelling
 survey_data$MTRANS[survey_data$MTRANS == "Walking"] <- 1
@@ -43,6 +42,6 @@ survey_data$Gender <- as.numeric(survey_data$Gender)
 binary_columns <- c("family_history_with_overweight", "FAVC", "SMOKE", "SCC")
 survey_data <- convert_binary_columns(survey_data, binary_columns)
 
-## Convert ordinal columns to numeric values for modelling
+## convert ordinal columns to numeric values for modelling
 ordinal_columns <- c("CAEC", "CALC")
 survey_data <- convert_ordinal_columns(survey_data, ordinal_columns)

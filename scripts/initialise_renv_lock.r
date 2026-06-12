@@ -1,7 +1,7 @@
-#this script intialises the renv, then installs necessary packages
+#initialise the renv and installs necessary packages
 install.packages("renv")
 renv::init()
 renv::install()
 
-#to new packages are added to the lockfile
+#run this to new packages are added to the lockfile
 #renv::snapshot()

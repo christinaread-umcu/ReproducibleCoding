@@ -1,4 +1,5 @@
 # This file contains the main analysis code
+
 library(randomForest)
 
 # generate scatterplot of BMI values to visually assess distribution
@@ -46,7 +47,6 @@ plot(preds, BMI_test,
 )
 abline(a = 0, b = 1, col = "red", lty = 3)
 
-
 sample_weights_test <- class_weight[survey_data$label[idx_test]]
 
 # compute baseline mean absolute error
@@ -55,5 +55,6 @@ mae_baseline <- sum(abs(BMI_test - rep(mean(BMI_train), length(BMI_test))) * sam
 # compute mean absolute error of model
 mae_model <- sum(abs(BMI_test - preds) * sample_weights_test) / sum(sample_weights_test)
 
+#compare the mean absolute error of the model to the baseline
 cat(sprintf("Mean absolute error (baseline): %.3f\n", mae_baseline))
 cat(sprintf("Mean absolute error: %.3f\n", mae_model))
