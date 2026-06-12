@@ -31,7 +31,7 @@ Changes made to the assignment code:
 Please open an issue in this repo if you encounter issues in running the script.
 
 ### Use of Generative AI
-Github Copilot was used within VS Code as part of this assignment. In-line suggestions were considered and implemented when applicable. Additionally, I used the chat function to ask for advice, for example:
+Github Copilot with the model Raptor mini was used within VS Code as part of this assignment. In-line suggestions were considered and implemented when applicable. Additionally, the chat function was used ask for advice, for example:
 
 Could this code be made more efficient with vectorisation?
 ##convert binary columns to numeric values for modelling
@@ -49,3 +49,6 @@ for (col in binary_columns) {
 
 ### Adherence to FAIR practices
 By hosting on Github with a clear README this code is findable and accessible once it is made public. The code is interoperable as dependencies are documented in the .lock file. It is reproducible as both the data and code are provided.
+
+### Suggested Citation (Example)
+Read, Christina. (2026). "Modeling Obesity and Lifestyle Factors". https://github.com/christinaread-umcu/ReproducibleCoding/.
