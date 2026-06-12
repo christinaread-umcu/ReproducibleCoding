@@ -1,6 +1,5 @@
 #data processing functions
 
-
 #calculate BMI based on standard formula
 calculate_bmi <- function(weight, height) {
 
