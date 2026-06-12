@@ -1,0 +1,4 @@
+^renv$
+^renv\.lock$
+^ReproducibleCoding\.Rproj$
+^\.Rproj\.user$

@@ -1,0 +1,11 @@
+Package: ReproducibleCoding
+Title: Modeling Obesity and Lifestyle Factors
+Version: 0.0.0.9000
+Authors@R:
+    person("Christina", "Read", , "first.last@example.com", role = c("aut", "cre"))
+Description: These notebooks create a model for the Estimation of Obesity Levels
+    based On Eating Habits and Physical Condition dataset.
+License: `use_mit_license()`
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 8.0.0

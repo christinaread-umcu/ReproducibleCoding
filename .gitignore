@@ -51,3 +51,7 @@ rsconnect/
 # Data Files
 .csv
 .zip
+.Rproj.user
+
+#renv
+renv/

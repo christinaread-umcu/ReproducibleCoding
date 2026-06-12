@@ -1,0 +1,56 @@
+# This file contains the main analysis code
+
+library(randomForest)
+
+# generate scatterplot of BMI values to visually assess distribution
+plot(survey_data$BMI, type = "p")
+
+# calculate class weights to handle class imbalance
+class_weight <- generate_class_weights(survey_data$label)
+
+# split data into training and test sets
+set.seed(42)
+index_rows <- seq_len(nrow(survey_data))
+
+idx_train <- sample(index_rows, size = floor(0.7 * length(index_rows)))
+idx_test <- setdiff(index_rows, idx_train)
+
+predictors <- c(
+  "Age", "Gender", "family_history_with_overweight",
+  "FAVC", "FCVC", "NCP", "CAEC", "SMOKE", "CH2O", "SCC", "FAF", "TUE",
+  "CALC", "MTRANS"
+)
+
+predictors_train <- survey_data[idx_train, predictors]
+predictors_test <- survey_data[idx_test, predictors]
+BMI_train <- survey_data$BMI[idx_train]
+BMI_test <- survey_data$BMI[idx_test]
+
+# assign weights to the training data to correct class imbalance
+sample_weights_train <- class_weight[survey_data$label[idx_train]]
+
+# run random forest with weights to handle class imbalance
+reg <- randomForest::randomForest(x = predictors_train, y = BMI_train, ntree = 100, nodesize = 5, maxnodes = 20, case.weights = sample_weights_train)
+
+
+# plot model accuracy in training set
+plot(predict(reg, predictors_train), BMI_train, pch = 16, col = rgb(0, 0, 0, 0.5))
+abline(a = 0, b = 1, col = "red", lty = 3)
+
+# plot model accuracy in testing set
+preds <- predict(reg, predictors_test)
+
+plot(preds, BMI_test,
+  xlab = "Predicted BMI",
+  ylab = "Observed BMI",
+  pch = 16, col = rgb(0, 0, 0, 0.5)
+)
+abline(a = 0, b = 1, col = "red", lty = 3)
+
+#compare baseline mean absolute error with model absolute error with class imbalance correction
+sample_weights_test <- class_weight[survey_data$label[idx_test]]
+mae_baseline <- sum(abs(BMI_test - rep(mean(BMI_train), length(BMI_test))) * sample_weights_test) / sum(sample_weights_test)
+mae_model <- sum(abs(BMI_test - preds) * sample_weights_test) / sum(sample_weights_test)
+
+cat(sprintf("Mean absolute error (baseline): %.3f\n", mae_baseline))
+cat(sprintf("Mean absolute error: %.3f\n", mae_model))
