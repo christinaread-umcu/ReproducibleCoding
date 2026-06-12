@@ -39,7 +39,7 @@ This analysis downloads and prepares the obesity dataset, converts categorical f
 
 ## Run tests
 Run script:
-- `Rscript -e "testthat::test_dir('tests')"`
+   - `("tests/test_that.R")`
 
 ## Use of Generative AI
 
