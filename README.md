@@ -24,10 +24,10 @@ This analysis downloads and prepares the obesity dataset, converts categorical f
 
 1. Open the project in RStudio or VSCode.
 2. Restore the project dependencies using `renv`:
-   - run script: `/initialise_renv_lock.R`
+   - Run script: `scripts/initialise_renv_lock.R`
 3. Verify that `renv` has successfully installed the required packages.
 4. Source functions
-   - source script: `("R/data_processing.R")`
+   - Source script: `("R/data_processing.R")`
 
 ## Data Processing
 1. Run script:
@@ -38,7 +38,7 @@ This analysis downloads and prepares the obesity dataset, converts categorical f
    - `("scripts/regression_analysis.R")`
 
 ## Run tests
-Run:
+Run script:
 - `Rscript -e "testthat::test_dir('tests')"`
 
 ## Use of Generative AI
