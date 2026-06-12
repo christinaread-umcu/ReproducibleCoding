@@ -18,7 +18,7 @@ This repository contains the code, data, and environment configuration for the o
 
 ## Description
 
-The analysis prepares the obesity dataset, converts categorical features into modeling-friendly forms, and fits a regression model to explore relationships between lifestyle factors and obesity levels.
+This analysis downloads and prepares the obesity dataset, converts categorical features into modeling-friendly forms, and fits a regression model to explore relationships between lifestyle factors and obesity levels.
 
 ## Setup
 
@@ -43,7 +43,7 @@ Run:
 
 ## Use of Generative AI
 
-GitHub Copilot with the model Raptor mini (Preview) was used during development to suggest code improvements and assist with formatting. n-line suggestions were considered and implemented when applicable. Additionally, the chat function was used ask for advice, for example:
+GitHub Copilot with the model Raptor mini (Preview) was used during development to suggest code improvements and assist with formatting. In-line suggestions were considered and implemented when applicable. Additionally, the chat function was used ask for advice, for example:
 
 Could this code be made more efficient with vectorisation? ##convert binary columns to numeric values for modelling binary_columns <- c( 'family_history_with_overweight', 'FAVC', 'SMOKE', 'SCC' ) for (col in binary_columns) { survey_data[survey_data[[col]] == 'yes', col] <- '1' survey_data[survey_data[[col]] == 'no', col] <- '0' survey_data[[col]] <- as.numeric(survey_data[[col]]) }
 
