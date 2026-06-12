@@ -1,7 +1,9 @@
 #data processing functions
 
+
 #calculate BMI based on standard formula
 calculate_bmi <- function(weight, height) {
+
   message("calculating BMI")
   if (any(weight <= 30)) {
     warning("Weight value(s) less than 30 kg detected. Please check input")
